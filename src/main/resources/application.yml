@@ -14,8 +14,12 @@ spring:
         format_sql: true
         show_sql: true
 jwt:
-  header: Authorization
-  #HS512 ????? ??? ??? ??? 512bit, ? 64byte ??? secret key? ???? ??.
-  #echo 'jwpExample-jwpExample-jwpExample-jwpExample-jwpExample-jwpExample'|base64
-  secret: andwRXhhbXBsZS1qd3BFeGFtcGxlLWp3cEV4YW1wbGUtandwRXhhbXBsZS1qd3BFeGFtcGxlLWp3cEV4YW1wbGU=
-  token-validity-in-seconds: 86400
+  secret:
+    key: x!A%D*G-KaPdSgVkYp3s5v8y/B?E(H+M
+#jwt:
+#  header: Authorization
+#  #HS512 ????? ??? ??? ??? 512bit, ? 64byte ??? secret key? ???? ??.
+#  #echo 'jwpExample-jwpExample-jwpExample-jwpExample-jwpExample-jwpExample'|base64
+#  secret:
+#    key: 8x/A?D(G+KbPeShVmYq3s6v9y$B&E)H@McQfTjWnZr4u7w!z%C*F-JaNdRgUkXp24342353252525rgsdfgjsd
+#  token-validity-in-seconds: 86400
