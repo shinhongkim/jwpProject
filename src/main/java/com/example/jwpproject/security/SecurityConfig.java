@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,6 +33,7 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
 
     @Bean
+    @Order(0)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
@@ -56,13 +59,20 @@ public class SecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+                .securityMatcher("/api/**")
+                .authorizeHttpRequests( auz-> auz.requestMatchers(HttpMethod.GET,"/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/register").permitAll()
+                        .requestMatchers("/user/**").hasRole("ROLE_USER")
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+                )
                 // 조건별로 요청 허용/제한 설정
-                .authorizeHttpRequests((auth)->{
-                    auth.requestMatchers("/register", "/login","/user/**").permitAll()
-                          //  .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-                          //  .requestMatchers("/user/**").hasRole("ROLE_USER")
-                            .anyRequest().denyAll();
-                })
+//                .authorizeHttpRequests((auth)->{
+//                    auth.requestMatchers("/register", "/login","/user/**").permitAll()
+//                            .requestMatchers("/swagger-ui/**").permitAll()
+//                          //  .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+//                          //  .requestMatchers("/user/**").hasRole("ROLE_USER")
+//                            .anyRequest().denyAll();
+//                })
 //                .authorizeHttpRequests()
 //                // 회원가입과 로그인은 모두 승인
 //                .requestMatchers("/register", "/login").permitAll()

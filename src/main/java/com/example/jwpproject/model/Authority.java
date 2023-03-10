@@ -20,9 +20,9 @@ public class Authority {
 
     private String name;
 
+    @JsonIgnore
     @JoinColumn(name = "member")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
     private Member member;
 
     public void setMember(Member member) {
