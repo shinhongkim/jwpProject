@@ -63,7 +63,7 @@ public class JwtProvider {
 
     //토큰에 담겨있는 유저 account 획득
     public String getAccount(String token){
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJwt(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
     }
 
     // Authorization Header를 통해 인증을 한다.
@@ -87,4 +87,5 @@ public class JwtProvider {
             return false;
         }
     }
+
 }

@@ -4,18 +4,28 @@ import com.example.jwpproject.model.dto.SignRequest;
 import com.example.jwpproject.model.dto.SignResponse;
 import com.example.jwpproject.service.SignService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequiredArgsConstructor
 public class SignController {
     private final SignService signService;
 
+    private final RedisTemplate redisTemplate;
+
     @PostMapping(value="/login")
     public ResponseEntity<SignResponse> signIn(@RequestBody SignRequest signRequest) throws Exception {
-        return new ResponseEntity<>(signService.login(signRequest), HttpStatus.OK);
+
+        SignResponse signResponse = signService.login(signRequest);
+
+       // redisTemplate.opsForValue().set("RT:" + signResponse.getName(), tokenInfo.getRefreshToken(), tokenInfo.getRefreshTokenExpirationTime(), TimeUnit.MILLISECONDS);
+
+        return new ResponseEntity<>(signResponse, HttpStatus.OK);
     }
 
     @PostMapping(value = "/register")

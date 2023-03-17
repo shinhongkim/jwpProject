@@ -7,12 +7,14 @@ import com.example.jwpproject.model.dto.SignResponse;
 import com.example.jwpproject.repository.MemberRepository;
 import com.example.jwpproject.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -25,6 +27,8 @@ public class SignService {
 
     private final JwtProvider jwtProvider;
 
+
+
     public SignResponse login(SignRequest request) throws Exception {
         Member member = memberRepository.findByAccount(request.getAccount()).orElseThrow(() ->
                 new BadCredentialsException("잘못된 계정정보입니다."));
@@ -32,6 +36,7 @@ public class SignService {
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new BadCredentialsException("잘못된 계정정보입니다.");
         }
+
 
         return SignResponse.builder()
                 .id(member.getId())

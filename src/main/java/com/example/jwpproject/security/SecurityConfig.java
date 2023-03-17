@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,6 +33,7 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtProvider jwtProvider;
 
+    private final RedisTemplate redisTemplate;
     @Bean
     @Order(0)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -59,30 +61,15 @@ public class SecurityConfig {
                 // Spring Security 세션 정책 : 세션을 생성 및 사용하지 않음
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .securityMatcher("/api/**")
-                .authorizeHttpRequests( auz-> auz.requestMatchers(HttpMethod.GET,"/login").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/register").permitAll()
-                        .requestMatchers("/user/**").hasRole("ROLE_USER")
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+                .authorizeHttpRequests( auz-> auz.requestMatchers("/login").permitAll()
+                        .requestMatchers("/register").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs",
+                                "/v3/api-docs/**")
+                        .permitAll()
+                        .anyRequest().authenticated()
+//                        .requestMatchers("/user/**").hasRole("ROLE_USER")
+//                        .requestMatchers("/admin/**").hasAnyRole("ADMIN")
                 )
-                // 조건별로 요청 허용/제한 설정
-//                .authorizeHttpRequests((auth)->{
-//                    auth.requestMatchers("/register", "/login","/user/**").permitAll()
-//                            .requestMatchers("/swagger-ui/**").permitAll()
-//                          //  .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-//                          //  .requestMatchers("/user/**").hasRole("ROLE_USER")
-//                            .anyRequest().denyAll();
-//                })
-//                .authorizeHttpRequests()
-//                // 회원가입과 로그인은 모두 승인
-//                .requestMatchers("/register", "/login").permitAll()
-//
-//                // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저에게만 허용
-//                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-//                // /user 로 시작하는 요청은 USER 권한이 있는 유저에게만 허용
-//                .requestMatchers("/user/**").hasAnyRole("ROLE_USER")
-//                .anyRequest().authenticated()
-//                .and()
                 // JWT 인증 필터 적용
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
