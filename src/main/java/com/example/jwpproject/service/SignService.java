@@ -6,6 +6,7 @@ import com.example.jwpproject.model.dto.SignRequest;
 import com.example.jwpproject.model.dto.SignResponse;
 import com.example.jwpproject.repository.MemberRepository;
 import com.example.jwpproject.security.JwtProvider;
+import com.example.jwpproject.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,7 +28,7 @@ public class SignService {
 
     private final JwtProvider jwtProvider;
 
-
+    private final RedisUtil redisUtil;
 
     public SignResponse login(SignRequest request) throws Exception {
         Member member = memberRepository.findByAccount(request.getAccount()).orElseThrow(() ->
@@ -46,6 +47,7 @@ public class SignService {
                 .nickname(member.getNickname())
                 .roles(member.getRoles())
                 .token(jwtProvider.createToken(member.getAccount(), member.getRoles()))
+                .refreshToken(jwtProvider.createRefreshToken(member.getAccount(), member.getRoles()))
                 .build();
 
     }
@@ -75,6 +77,11 @@ public class SignService {
                 .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
         System.out.println("member===="+member);
         return new SignResponse(member);
+    }
+
+    public void logout(String accessToken, String refreshToken) {
+        redisUtil.setBlackList(accessToken, "accessToken", 1800);
+        redisUtil.setBlackList(refreshToken, "refreshToken", 60400);
     }
 
 }

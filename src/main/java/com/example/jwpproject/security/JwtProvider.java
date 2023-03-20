@@ -1,10 +1,8 @@
 package com.example.jwpproject.security;
 
 import com.example.jwpproject.model.Authority;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.jwpproject.util.RedisUtil;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +26,16 @@ public class JwtProvider {
     private String salt;
 
     private Key secretKey;
+
+
+    @Value("${jwt.access-token-validity-in-seconds}")
+    private long accessTokenValidityInSeconds;
+
+    @Value("${jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInSeconds;
+
+
+    private final RedisUtil redisUtil;
 
     //만료시간
     private final long exp = 1000L * 60;
@@ -53,6 +61,22 @@ public class JwtProvider {
 
     }
 
+    public String createRefreshToken(String account, List<Authority> roles){
+        Claims claims = Jwts.claims().setSubject(account);
+        claims.put("roles",roles);
+
+        Date now = new Date();
+
+        return Jwts.builder().setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime()+(refreshTokenValidityInSeconds*1000)))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+
+    }
+
+
+
     //권한정보 획득
     //spring Security 인증과정에서 권한확인을 위한 기능
     public Authentication getAuthentication(String token){
@@ -65,6 +89,7 @@ public class JwtProvider {
     public String getAccount(String token){
         return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
     }
+
 
     // Authorization Header를 통해 인증을 한다.
     public String resolveToken(HttpServletRequest request) {
@@ -81,11 +106,26 @@ public class JwtProvider {
                 token = token.split(" ")[1].trim();
             }
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+
+            if(redisUtil.hasKeyBlackList(token)){
+                 return false;
+            }
             // 만료되었을 시 false
             return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /** 토큰에서 Claim 추출**/
+    public Claims getClaims(String token){
+
+        try{
+            return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+        }catch(ExpiredJwtException e){
+            return e.getClaims();
+        }
+
     }
 
 }

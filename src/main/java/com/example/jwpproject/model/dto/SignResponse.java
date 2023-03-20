@@ -29,6 +29,8 @@ public class SignResponse {
 
     private String token;
 
+    private String refreshToken;
+
     public SignResponse(Member member){
         this.id = member.getId();
         this.account = member.getAccount();

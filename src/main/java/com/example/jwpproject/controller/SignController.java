@@ -43,4 +43,14 @@ public class SignController {
         return new ResponseEntity<>( signService.getMember(account), HttpStatus.OK);
     }
 
+    @PostMapping("/logout")
+    public SignResponse logout(
+            @RequestBody SignRequest signRequest
+    ){
+        signService.logout(signRequest.getToken(),signRequest.getRefreshToken());
+        SignResponse signResponse = new SignResponse();
+
+        return signResponse;
+
+    }
 }
